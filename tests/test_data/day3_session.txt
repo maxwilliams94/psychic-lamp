@@ -1,0 +1,73 @@
+"2022-03-10 2:01 pm";56 min
+"Day 3 · Week 5 · 3 + Sundays "
+"1. Bench Press Barbell"
+"8 reps"
+#;KG;REPS
+1;70;5
+2;65;7
+3;65;7
+4;60;8
+5;60;8
+"2. Incline Bench Press Dumbbells"
+"10 reps"
+#;KG;REPS
+1;24;7
+2;20;10
+3;20;11
+"3. Skull Crushers EZ bar"
+"10 reps"
+#;KG;REPS
+1;22.5;12
+2;22.5;12
+3;22.5;10
+"4. High Cable Flys Cable"
+"10 reps"
+#;KG;REPS
+1;10;16
+2;12.5;10
+3;10;12
+"5. Tricep Pushdowns Cable"
+"10 reps"
+#;KG;REPS
+1;19;16
+2;19;15
+3;17;15
+"6. Push-Ups Bodyweight"
+"10 reps"
+#;KG;REPS
+1;0;8
+
+
+"Day 2"
+"2022-03-09 1:39 pm";33 min
+"Day 2 · Week 5 · 3 + Sundays "
+"1. Leg Press Machine"
+"10 reps"
+#;KG;REPS
+1;100;20
+2;150;12
+3;150;10
+"2. Leg Extensions Machine"
+"10 reps"
+#;KG;REPS
+1;68.3;10
+2;70.6;10
+3;73;12
+"3. Lying Leg Curls Machine"
+"10 reps"
+#;KG;REPS
+1;46;10
+2;48;10
+3;48;10
+"4. Hack Squats Machine"
+"10 reps"
+#;KG;REPS
+1;-;-
+2;-;-
+3;-;-
+"5. Standing Calf Raises Machine"
+"10 reps"
+#;KG;REPS
+1;70;15
+2;90;15
+3;110;12

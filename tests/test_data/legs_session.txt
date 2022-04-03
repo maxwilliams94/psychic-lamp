@@ -1,0 +1,42 @@
+﻿
+
+Chest
+"2022-03-31 2:03 pm";1:01 hr
+"Day 1 · Week 2 · Bro split "
+"1. Bench Press Barbell"
+"10 reps"
+#;KG;REPS
+1;60;5
+2;70;5
+3;65;9
+4;65;7
+5;60;9
+"2. Incline Bench Press 20° Dumbbells"
+"10 reps"
+#;KG;REPS
+1;24;7
+2;22;10
+3;20;12
+"3. Skull Crushers EZ bar"
+"10 reps"
+#;KG;REPS
+1;17.5;12
+2;17.5;10
+3;12.5;15
+"4. Flys Cable"
+"10 reps"
+#;KG;REPS
+1;12.5;15
+2;10.2;15
+3;10.2;10
+"5. Tricep Pushdowns Cable"
+"10 reps"
+#;KG;REPS
+1;19;15
+2;19;12
+3;17;12
+"6. Assisted Dips Machine"
+"10 reps"
+#;KG;REPS
+1;-9;7
+

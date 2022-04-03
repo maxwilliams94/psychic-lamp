@@ -15,19 +15,24 @@ ExerciseSet = namedtuple("ExerciseSet", ["n", "weight", "reps"])
 
 
 class GymSession:
-    PLAN_PAT = "^Day [0-9]+ · Week [0-9]* · (.*)"
+    PLAN_PAT = "^(.+) - Week ([0-9]*) - (.*)"
     DATE_PAT = "([0-9]{4}-[0-9]{2}-[0-9]{2})"
-    EXERCISE_PAT = "[0-9]+\. (.+)"
+    EXERCISE_PAT = r"[0-9]+\. (.+)"
     DATE_FORMAT = "%Y-%m-%d"
     COLUMNS = ("date", "plan", "exercise", "weight", "reps")
 
-    def __init__(self, lines: list):
-        self.lines = lines
+    def __init__(self, lines: list, separator=";"):
+        self.lines = self._clean_lines(lines)
+        self.sep = separator
 
         self._plan = None
         self._date: datetime = None
         self._exercises = []
         self._sets = defaultdict(list)  # reps[exercise] = [(weight, reps)]
+
+    @staticmethod
+    def _clean_lines(lines):
+        return [l.replace('"', '').replace("·", "-") for l in lines]
 
     def parse_session(self):
         self._find_date_plan()
@@ -41,7 +46,7 @@ class GymSession:
                 logging.debug(f"GymSession on {self._date}")
             match = re.match(self.PLAN_PAT, l)
             if match:
-                self._plan = match.group(1)
+                self._plan = match.group(3).rstrip()
                 logging.debug(f"GymSession using {self._plan}")
 
             if self._plan and self._date:
@@ -76,7 +81,7 @@ class GymSession:
             sets = []
             lines = self._sets[exercise]
             for l in lines:
-                match = re.search("([0-9]+);([0-9]+);([0-9]+)", l)
+                match = re.search(f"([0-9]+){self.sep}([0-9]+){self.sep}([0-9]+)", l)
                 if match:
                     sets.append(ExerciseSet(*match.groups()))
             self._sets[exercise] = sets
@@ -119,8 +124,7 @@ class GymSession:
 def parse_exported_csv(file_name) -> pd.DataFrame:
     first_date_reached = False
     with open(Path(file_name), "r") as f:
-        lines = [l.strip("\n").replace('"', '').replace("·", "-") for
-                 l in f.readlines()]
+        lines = [l.strip("\n") for l in f.readlines()]
         buffer = []
         sessions = []
         for l in lines:
@@ -147,11 +151,12 @@ if __name__ == "__main__":
                         help="Input file")
     parser.add_argument("--output", "-o", type=Path,
                         help="Output file")
-
-    logging.basicConfig()
-
+    parser.add_argument("-v", action="count", help="verbosity flag (v, vv, vvv, vvvv")
     args = parser.parse_args()
+    args.v = 50 -(args.v * 10)
+    args.v = logging.DEBUG if args.v < 10 else args.v
 
+    logging.basicConfig(level=args.v)
     df_csv = parse_exported_csv(args.input)
 
     df_csv.to_csv(args.output, index=False)
