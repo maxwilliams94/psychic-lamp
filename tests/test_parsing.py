@@ -6,7 +6,7 @@ import os.path
 import sys
 sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..")))
 
-from alpha_parse.session import GymSessionParser
+from alpha_parse.parse import GymSessionParser
 import pytest
 
 
