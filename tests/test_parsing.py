@@ -1,11 +1,12 @@
 """
 Unit tests for input-file parsing
 """
-import os.path
-
-from alpha_parse.alpha_parse import GymSession
 from datetime import datetime
+import os.path
+import sys
+sys.path.insert(0, os.path.abspath(os.path.join(__file__, "..")))
 
+from alpha_parse.session import GymSessionParser
 import pytest
 
 
@@ -14,7 +15,7 @@ def session_from_file():
     def f(file_name):
         with open(os.path.join("test_data", file_name), "r") as input_txt:
             lines = input_txt.readlines()
-            session = GymSession(lines)
+            session = GymSessionParser(lines)
 
             session.parse_session()
             return session

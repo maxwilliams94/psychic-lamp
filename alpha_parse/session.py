@@ -1,20 +1,17 @@
-"""
-Parsing Alpha Progression Workout Output
-"""
-
-import argparse
-from collections import defaultdict, namedtuple
 import logging
-from pathlib import Path
-from datetime import datetime
 import re
+from collections import namedtuple, defaultdict
+from datetime import datetime
 
 import pandas as pd
 
 ExerciseSet = namedtuple("ExerciseSet", ["n", "weight", "reps"])
 
 
-class GymSession:
+class GymSessionParser:
+    """
+    Parse a gym session
+    """
     PLAN_PAT = "^(.+) - Week ([0-9]*) - (.*)"
     DATE_PAT = "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     EXERCISE_PAT = r"[0-9]+\. (.+)"
@@ -26,25 +23,25 @@ class GymSession:
         self.sep = separator
 
         self._plan = None
-        self._date: datetime = None
+        self._date: datetime
         self._exercises = []
         self._sets = defaultdict(list)  # reps[exercise] = [(weight, reps)]
 
     @staticmethod
     def _clean_lines(lines):
-        return [l.replace('"', '').replace("·", "-") for l in lines]
+        return [li.replace('"', '').replace("·", "-") for li in lines]
 
     def parse_session(self):
         self._find_date_plan()
         self._find_exercises()
 
     def _find_date_plan(self):
-        for l in self.lines:
-            match = re.search(self.DATE_PAT, l)
+        for li in self.lines:
+            match = re.search(self.DATE_PAT, li)
             if match:
                 self._date = datetime.strptime(match.group(1), self.DATE_FORMAT)
                 logging.debug(f"GymSession on {self._date}")
-            match = re.match(self.PLAN_PAT, l)
+            match = re.match(self.PLAN_PAT, li)
             if match:
                 self._plan = match.group(3).rstrip()
                 logging.debug(f"GymSession using {self._plan}")
@@ -80,8 +77,8 @@ class GymSession:
         for exercise in self._exercises:
             sets = []
             lines = self._sets[exercise]
-            for l in lines:
-                match = re.search(f"([0-9]+){self.sep}([0-9]+){self.sep}([0-9]+)", l)
+            for li in lines:
+                match = re.search(f"([0-9]+){self.sep}([0-9]+){self.sep}([0-9]+)", li)
                 if match:
                     sets.append(ExerciseSet(*match.groups()))
             self._sets[exercise] = sets
@@ -93,17 +90,17 @@ class GymSession:
         df = pd.DataFrame(columns=self.COLUMNS)
         for ex in self._exercises:
             for ex_set in self._sets[ex]:
-                df = df.append(GymSession._create_row(self._date,
-                                                      self._plan,
-                                                      ex,
-                                                      ex_set),
+                df = pd.concat((df, GymSessionParser._create_row(self._date,
+                                                                 self._plan,
+                                                                 ex,
+                                                                 ex_set)),
                                ignore_index=True)
 
         return df
 
     @staticmethod
     def _create_row(date: datetime, plan, name, exercise: ExerciseSet):
-        tmp = dict((k, v) for k, v in zip(GymSession.COLUMNS,
+        tmp = dict((k, v) for k, v in zip(GymSessionParser.COLUMNS,
                                           (date.strftime("%Y-%m-%d"),
                                            plan,
                                            name,
@@ -114,49 +111,8 @@ class GymSession:
 
     @staticmethod
     def exercise_match(line):
-        return re.search(GymSession.EXERCISE_PAT, line)
+        return re.search(GymSessionParser.EXERCISE_PAT, line)
 
     @staticmethod
     def date_match(line):
-        return re.search(GymSession.DATE_PAT, line)
-
-
-def parse_exported_csv(file_name) -> pd.DataFrame:
-    first_date_reached = False
-    with open(Path(file_name), "r") as f:
-        lines = [l.strip("\n") for l in f.readlines()]
-        buffer = []
-        sessions = []
-        for l in lines:
-            if not l:
-                continue
-            if re.search("[0-9]{4}-[0-9]{2}-[0-9]{2}", l):
-                if first_date_reached:
-                    sessions.append(GymSession(buffer))
-                    buffer = []
-                else:
-                    first_date_reached = True
-            buffer.append(l)
-
-    [s.parse_session() for s in sessions]
-    dataframes = [s.to_dataframe() for s in sessions]
-
-    data = pd.concat(dataframes, axis=0, ignore_index=True)
-    return data
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", "-i", type=Path, required=True,
-                        help="Input file")
-    parser.add_argument("--output", "-o", type=Path,
-                        help="Output file")
-    parser.add_argument("-v", action="count", help="verbosity flag (v, vv, vvv, vvvv")
-    args = parser.parse_args()
-    args.v = 50 -(args.v * 10)
-    args.v = logging.DEBUG if args.v < 10 else args.v
-
-    logging.basicConfig(level=args.v)
-    df_csv = parse_exported_csv(args.input)
-
-    df_csv.to_csv(args.output, index=False)
+        return re.search(GymSessionParser.DATE_PAT, line)
