@@ -23,7 +23,7 @@ def session_from_file():
     return f
 
 
-class TestSession:
+class TestSessionParsing:
     @pytest.mark.parametrize("input_file,attr, exp", [
         ("legs_session.txt", "_date", datetime(year=2022, month=3, day=31)),
         ("legs_session.txt", "_plan", "Bro split"),

@@ -37,6 +37,7 @@ class GymSessionParser:
         self._find_exercises()
 
     def _find_date_plan(self):
+        # TODO fix plan finding
         for li in self.lines:
             match = re.search(self.DATE_PAT, li)
             if match:
@@ -119,10 +120,22 @@ class GymSessionParser:
         return re.search(GymSessionParser.DATE_PAT, line)
 
 
+def _drop_non_asci_characters(line: str) -> str:
+    new_string = []
+    for char in line:
+        try:
+            new_string.append(char.encode("ASCII"))
+        except UnicodeEncodeError:
+            pass
+
+    return "".join([char.decode("ASCII") for char in new_string])
+
+
 def parse_input_csv(file_name) -> pd.DataFrame:
     first_date_reached = False
     with open(Path(file_name), "r") as f:
-        lines = [l.strip("\n") for l in f.readlines()]
+        lines = [li.strip("\n") for li in f.readlines()]
+        lines = [_drop_non_asci_characters(li) for li in lines]
         buffer = []
         sessions = []
         for l in lines:
