@@ -13,14 +13,14 @@ class GymSessionParser:
     """
     Parse a gym session
     """
-    PLAN_PAT = "^(.+) - Week ([0-9]*) - (.*)"
+    PLAN_PAT = "^(.+) Week ([0-9]*) (.*)"
     DATE_PAT = "([0-9]{4}-[0-9]{2}-[0-9]{2})"
     EXERCISE_PAT = r"[0-9]+\. (.+)"
     DATE_FORMAT = "%Y-%m-%d"
     COLUMNS = ("date", "plan", "exercise", "weight", "reps")
 
     def __init__(self, lines: list, separator=";"):
-        self.lines = self._clean_lines(lines)
+        self.lines = lines
         self.sep = separator
 
         self._plan = None
@@ -28,16 +28,11 @@ class GymSessionParser:
         self._exercises = []
         self._sets = defaultdict(list)  # reps[exercise] = [(weight, reps)]
 
-    @staticmethod
-    def _clean_lines(lines):
-        return [li.replace('"', '').replace("·", "-") for li in lines]
-
     def parse_session(self):
         self._find_date_plan()
         self._find_exercises()
 
     def _find_date_plan(self):
-        # TODO fix plan finding
         for li in self.lines:
             match = re.search(self.DATE_PAT, li)
             if match:
@@ -120,34 +115,47 @@ class GymSessionParser:
         return re.search(GymSessionParser.DATE_PAT, line)
 
 
-def _drop_non_asci_characters(line: str) -> str:
-    new_string = []
-    for char in line:
-        try:
-            new_string.append(char.encode("ASCII"))
-        except UnicodeEncodeError:
-            pass
+class InputCleaner:
+    @staticmethod
+    def lines_from_file(file_name):
+        with open(Path(file_name), "r") as f:
+            lines = [li.strip("\n") for li in f.readlines()]
+            lines = [InputCleaner._drop_non_asci_characters(li) for li in lines]
+            lines = InputCleaner._clean_lines(lines)
 
-    return "".join([char.decode("ASCII") for char in new_string])
+        return lines
+
+    @staticmethod
+    def _drop_non_asci_characters(line: str) -> str:
+        new_string = []
+        for char in line:
+            try:
+                new_string.append(char.encode("ASCII"))
+            except UnicodeEncodeError:
+                pass
+
+        return "".join([char.decode("ASCII") for char in new_string])
+
+    @staticmethod
+    def _clean_lines(lines):
+        return [li.replace('"', '').replace("·", "-").replace("  ", " ").replace("  ", " ") for li in lines]
 
 
 def parse_input_csv(file_name) -> pd.DataFrame:
     first_date_reached = False
-    with open(Path(file_name), "r") as f:
-        lines = [li.strip("\n") for li in f.readlines()]
-        lines = [_drop_non_asci_characters(li) for li in lines]
-        buffer = []
-        sessions = []
-        for l in lines:
-            if not l:
-                continue
-            if re.search("[0-9]{4}-[0-9]{2}-[0-9]{2}", l):
-                if first_date_reached:
-                    sessions.append(GymSessionParser(buffer))
-                    buffer = []
-                else:
-                    first_date_reached = True
-            buffer.append(l)
+    buffer = []
+    sessions = []
+    lines = InputCleaner.lines_from_file(file_name)
+    for li in lines:
+        if not li:
+            continue
+        if re.search(GymSessionParser.DATE_PAT, li):
+            if first_date_reached:
+                sessions.append(GymSessionParser(buffer))
+                buffer = []
+            else:
+                first_date_reached = True
+        buffer.append(li)
 
     [s.parse_session() for s in sessions]
     dataframes = [s.to_dataframe() for s in sessions]
